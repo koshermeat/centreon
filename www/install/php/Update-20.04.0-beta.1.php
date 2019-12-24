@@ -27,7 +27,7 @@ try {
 } catch (\PDOException $e) {
     $centreonLog->insertLog(
         2,
-        "UPGRADE : 19.10.2 Unable to set default contact_autologin_key"
+        "UPGRADE : 20.04.0-beta.1 Unable to set default contact_autologin_key"
     );
 }
 
@@ -86,6 +86,52 @@ try {
     $centreonLog->insertLog(
         2,
         "UPGRADE : 20.04.0-beta.1 Unable to move engine's broker modules configuration from xml to json format"
+    );
+    throw new \PDOException($e);
+}
+
+// Generate a new config file for the gorgone daemon module
+try {
+    //define default paramaters values
+    $patterns = [
+        '/--ADDRESS--/',
+        '/--DBUSER--/',
+        '/--DBPASS--/',
+        '/--CONFDB--/',
+        '/--STORAGEDB--/',
+        '/--CENTREONDIR--/',
+        '/--CENTREON_CACHEDIR--/',
+        '/--DBPORT--/',
+        '/--INSTANCEMODE--/',
+        '/--CENTREON_VARLIB--/',
+        '/--CENTREON_SPOOL--/',
+        '/--HTTPSERVERADDRESS--/',
+        '/--HTTPSERVERPORT--/',
+        '/--SSLMODE--/',
+        '/--CENTREON_TRAPDIR--/'
+    ];
+
+    $replacements = [
+        $host,
+        $parameters['db_user'],
+        $parameters['db_password'],
+        $parameters['db_configuration'],
+        $parameters['db_storage'],
+        $configuration['centreon_dir'],
+        $configuration['centreon_cachedir'],
+        $parameters['port'],
+        "central",
+        $configuration['centreon_varlib'],
+        "/var/spool/centreon",
+        "0.0.0.0",
+        "8085",
+        "false",
+        "/etc/snmp/centreon_traps"
+    ];
+} catch (\PDOException $e) {
+    $centreonLog->insertLog(
+        2,
+        "UPGRADE : 20.04.0-beta.1 Unable to generate the gorgoned.yml file"
     );
     throw new \PDOException($e);
 }
